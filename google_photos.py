@@ -13,14 +13,14 @@ def run_cmd(cmd: str) -> bytes:
     return subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=open('/dev/null')).communicate()[0].strip()
 
 
-def brute_force(free_ports, start_n):
-    print(f"Start_N: {start_n}")
+def brute_force(free_ports,):
+    print("Starting Brute Force")
+    print(f"FreePorts: {free_ports}")
     r = requests.Session()
     cpu_count = multiprocessing.cpu_count()
     # threads_limit = math.ceil(free_ports / multiprocessing.cpu_count())
     threads_limit = 500
-    c = Crunch(min_length=75, max_length=75, allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890-',
-               start_n=start_n)  # allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890-'
+    c = Crunch(min_length=75, max_length=75, allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890-')  # allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890-'
     print('Stating Crunch')
 
     time.sleep(2)  # Let all the processes spin up
@@ -36,15 +36,17 @@ def brute_force(free_ports, start_n):
                         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
                     })
                 except:
+                    del resp
                     # pp(e)
-                    return
+                    return worker(code, r)
                 # print(resp.status_code)
                 if resp.status_code == 200:
                     print('\n\nFound: http://lh3.googleusercontent.com/%s\n\n' % code)
-                    return
+                del resp, code
+                return
 
-            e = executor.submit(worker, code, r)
-
+            executor.submit(worker, code, r)
+            del code, n
             # try:
             # while threading.active_count() >= threads_limit:
             #     time.sleep(0.0001)
@@ -59,9 +61,10 @@ def brute_force(free_ports, start_n):
 if __name__ == '__main__':
     max_free_ports = int(run_cmd("sysctl net.ipv4.ip_local_port_range | awk '{print $4-$3}'"))
 
-    permutations = Crunch(min_length=75, max_length=75, allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890-').n_permutations()
-    pp("Total Permutations: %s" % permutations)
-    permutations /= multiprocessing.cpu_count()
+    # permutations = Crunch(min_length=75, max_length=75, allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890-').n_permutations()
+    # pp("Total Permutations: %s" % permutations)
+    # permutations /= multiprocessing.cpu_count()
     for x in range(0, multiprocessing.cpu_count()):
-        pp("Launching Start_N: %s" % (permutations * x))
-        multiprocessing.Process(target=brute_force, args=(max_free_ports, (x * permutations),)).start()
+    # with concurrent.futures.ProcessPoolExecutor(max_workers=multiprocessing.cpu_count()) as executor:
+        multiprocessing.Process(target=brute_force, args=(max_free_ports,)).start()
+        # executor.submit(brute_force, max_free_ports)  #permutations
