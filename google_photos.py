@@ -42,7 +42,7 @@ def brute_force(free_ports, start_n):
 
         try:
             while threading.active_count() >= 500:
-                time.sleep(0.1)
+                time.sleep(0.0001)
             threading.Thread(target=worker, args=(code,)).start()  # free_ports - used_port_count
         except:
             # pp(e)
@@ -54,8 +54,8 @@ if __name__ == '__main__':
     max_free_ports = int(run_cmd("sysctl net.ipv4.ip_local_port_range | awk '{print $4-$3}'"))
 
     permutations = Crunch(min_length=75, max_length=75, allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890-').n_permutations()
-    permutations /= multiprocessing.cpu_count()
     pp("Total Permutations: %s" % permutations)
+    permutations /= multiprocessing.cpu_count()
     for x in range(0, multiprocessing.cpu_count()):
         pp("Launching Start_N: %s" % (permutations * x))
         multiprocessing.Process(target=brute_force, args=(max_free_ports, (x * permutations),)).start()
