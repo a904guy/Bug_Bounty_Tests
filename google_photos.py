@@ -29,17 +29,17 @@ def brute_force(free_ports,):
             # used_port_count = int(run_cmd("netstat -antp 2> /dev/null | grep 'tcp' | grep -v 'LISTEN' | wc -l"))
 
             def worker(code, r):
-                print('Testing: http://lh3.googleusercontent.com/%s | threading_count: %s | process_name: %s | n:%s\r' % (
-                    code, threading.active_count(), multiprocessing.current_process().name.ljust(11), n * cpu_count), end='')  # free_ports - used_port_count
                 try:
                     resp = r.head('http://lh3.googleusercontent.com/%s' % code, headers={
                         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
                     })
-                except:
+                except Exception as e:
                     del resp
-                    # pp(e)
+                    pp(e)
                     return worker(code, r)
                 # print(resp.status_code)
+                print('Testing: http://lh3.googleusercontent.com/%s | response_code: %s | threading_count: %s | process_name: %s | n:%s\r' % (
+                    code, resp.status_code, threading.active_count(), multiprocessing.current_process().name.ljust(11), n * cpu_count), end='')  # free_ports - used_port_count
                 if resp.status_code == 200:
                     print('\n\nFound: http://lh3.googleusercontent.com/%s\n\n' % code)
                 del resp, code
